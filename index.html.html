@@ -12,6 +12,7 @@
             --background-color: #f0f7f0;
             --card-color: #ffffff;
             --text-color: #333333;
+            --warning-color: #FFA500;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,6 +31,7 @@
             background: var(--primary-color);
             padding: 20px;
             color: white;
+            transition: transform 0.3s ease-in-out;
         }
         .content {
             padding: 20px;
@@ -95,15 +97,84 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            background-color: var(--background-color);
         }
         #farm-select {
             margin-bottom: 20px;
             padding: 10px;
             font-size: 18px;
         }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .warning-log {
+            background-color: var(--warning-color);
+            color: white;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .warning-history {
+            margin-top: 20px;
+        }
+        .warning-history h3 {
+            color: var(--warning-color);
+        }
+        .warning-history ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .warning-history li {
+            background-color: #fff3e0;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: fixed;
+                left: -220px;
+                top: 0;
+                bottom: 0;
+                z-index: 999;
+            }
+            .sidebar.active {
+                transform: translateX(220px);
+            }
+            #menu-toggle {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
+    <button id="menu-toggle">☰</button>
     <div id="main-menu">
         <h1>Welcome to Green Acres Farm Dashboard</h1>
         <select id="farm-select">
@@ -157,6 +228,11 @@
                     <a href="#" class="button" onclick="toggleRover()">Start/Stop Rover</a>
                     <a href="#" class="button" onclick="generateReport()">Generate Report</a>
                 </div>
+                <div id="warning-log" class="warning-log" style="display: none;"></div>
+                <div class="warning-history">
+                    <h3>Warning History</h3>
+                    <ul id="warning-history-list"></ul>
+                </div>
             </div>
             
             <div id="details-view" style="display:none;">
@@ -183,6 +259,8 @@
         </div>
     </div>
 
+    <div id="notification" class="notification"></div>
+
     <script>
         let roverActive = false;
         let averageData = {
@@ -190,6 +268,42 @@
             moisture: [45, 47, 44, 46, 48, 45, 43, 46, 47, 45],
             ph: [6.5, 6.4, 6.6, 6.5, 6.7, 6.6, 6.5, 6.4, 6.5, 6.6]
         };
+        let warningHistory = [];
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.opacity = '1';
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 3000);
+        }
+
+        function showWarning(message) {
+            const warningLog = document.getElementById('warning-log');
+            warningLog.textContent = message;
+            warningLog.style.display = 'block';
+            addWarningToHistory(message);
+        }
+
+        function addWarningToHistory(message) {
+            const timestamp = new Date().toLocaleString();
+            warningHistory.unshift({ message, timestamp });
+            if (warningHistory.length > 10) {
+                warningHistory.pop();
+            }
+            updateWarningHistoryList();
+        }
+
+        function updateWarningHistoryList() {
+            const warningHistoryList = document.getElementById('warning-history-list');
+            warningHistoryList.innerHTML = '';
+            warningHistory.forEach(warning => {
+                const li = document.createElement('li');
+                li.textContent = `${warning.timestamp}: ${warning.message}`;
+                warningHistoryList.appendChild(li);
+            });
+        }
 
         function enterDashboard() {
             const selectedFarm = document.getElementById('farm-select').value;
@@ -201,6 +315,7 @@
                 updateChart();
                 updateStats(averageData.temperature[9], averageData.moisture[9], averageData.ph[9], 85);
                 updateAmbientBlock();
+                showNotification(`Welcome to ${selectedFarm}`);
             } else {
                 alert('Please select a farm before entering the dashboard.');
             }
@@ -211,12 +326,16 @@
             document.getElementById(viewName + '-view').style.display = 'block';
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             event.target.classList.add('active');
+            showNotification(`Switched to ${viewName} view`);
         }
 
         function toggleRover() {
             roverActive = !roverActive;
             if (roverActive) {
                 simulateRoverActivity();
+                showNotification('Rover activated');
+            } else {
+                showNotification('Rover deactivated');
             }
         }
 
@@ -242,6 +361,19 @@
             updateAmbientBlock();
             updateChart();
             addReading(temp, moisture, ph);
+
+            // Check for warning conditions
+            if (parseFloat(temp) > 30) {
+                showWarning(`Warning: High temperature detected (${temp}°C)`);
+            } else if (parseFloat(moisture) < 30) {
+                showWarning(`Warning: Low moisture detected (${moisture}%)`);
+            } else if (parseFloat(ph) < 6.0 || parseFloat(ph) > 7.5) {
+                showWarning(`Warning: pH level out of optimal range (${ph})`);
+            } else if (parseFloat(battery) < 20) {
+                showWarning(`Warning: Low rover battery (${battery}%)`);
+            } else {
+                document.getElementById('warning-log').style.display = 'none';
+            }
 
             setTimeout(simulateRoverActivity, 2000);
         }
@@ -320,14 +452,23 @@
         }
 
         function generateReport() {
-            alert('Generating comprehensive farm report...');
+            showNotification('Generating comprehensive farm report...');
         }
 
         function saveSettings() {
             const interval = document.getElementById('sampling-interval').value;
             const speed = document.getElementById('movement-speed').value;
-            alert(`Settings saved! Sampling every ${interval} minutes, Movement speed: ${speed}/10`);
+            showNotification(`Settings saved! Sampling every ${interval} minutes, Movement speed: ${speed}/10`);
         }
+
+        // Add this new function to toggle the sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Add event listener for the menu toggle button
+        document.getElementById('menu-toggle').addEventListener('click', toggleSidebar);
     </script>
 </body>
 </html>
