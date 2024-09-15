@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -288,6 +289,8 @@
         };
         let warningHistory = [];
         let map;
+        let heatLayer;
+        let moistureLayer;
         let roverMarker;
         let readingsMarkers = [];
 
@@ -352,12 +355,26 @@
             event.target.classList.add('active');
             showNotification(`Switched to ${viewName} view`);
             if (viewName === 'details' && !map) {
-                map = L.map('map').setView([30.51482280457499, 30.50026193732045], 13); // Alexandria Desert Road location
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                    maxZoom: 18,
+                map = L.map('map').setView([30.51482280457499, 30.50026193732045], 18); // Alexandria Desert Road location
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                    maxZoom: 17,
                 }).addTo(map);
                 roverMarker = L.marker([30.51482280457499, 30.50026193732045]).addTo(map);
+                heatLayer = L.heatLayer([[30.51482280457499, 30.50026193732045, 22]], {
+                    radius: 20,
+                    blur: 15,
+                    maxZoom: 18,
+                    max:100,
+                    minOpacity:0.3,
+                    gradient: {
+                        0.2: 'blue',
+                        0.3: 'cyan',
+                        0.5: 'lime',
+                        0.7: 'yellow',
+                        1.0: 'red'
+                    }
+                }).addTo(map);
             }
         }
 
@@ -395,13 +412,16 @@
             addReading(temp, moisture, ph);
 
             // Simulate rover motion and update map marker with a random direction and constant speed
-            const speed = 0.001; // Constant speed in degrees
-            const direction = Math.random() * 90 - 45; // Random direction between -90 and 90 degrees
-            const newLatitude = 30.51482280457499 + speed * Math.cos(direction * Math.PI / 180); // Adjust latitude based on direction and speed
-            const newLongitude = 30.50026193732045 + speed * Math.sin(direction * Math.PI / 180); // Adjust longitude based on direction and speed
+            const speed = 0.002; // Constant speed in degrees
+            const direction = Math.random() * 180 - 90; // Random direction between -90 and 90 degrees
+            const newLatitude = 30.51482280457499 + speed * Math.random();
+            const newLongitude = 30.50026193732045 + speed * Math.random(); // Adjust longitude based on direction and speed
             if (map) {
                 roverMarker.setLatLng([newLatitude, newLongitude]);
+                // Assuming heatLayer is defined and initialized elsewhere in the code
                 roverMarker.bindPopup(`Temperature: ${temp}°C, Moisture: ${moisture}%, pH: ${ph}`).openPopup();
+                heatLayer.addLatLng([newLatitude, newLongitude, temp]);
+                heatLayer.redraw();
             }
 
             // Check for warning conditions
