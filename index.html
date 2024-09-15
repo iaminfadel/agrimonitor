@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Green Acres Farm Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -97,12 +99,16 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: var(--background-color);
+            background-color: #2E7D32;
+            background-image: linear-gradient(to bottom right, #1B5E20, #43A047);
         }
         #farm-select {
             margin-bottom: 20px;
             padding: 10px;
             font-size: 18px;
+            background-color: #ffffff;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
         }
         .notification {
             position: fixed;
@@ -153,6 +159,15 @@
             padding: 10px;
             border-radius: 5px;
         }
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+        .logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
         @media (max-width: 768px) {
             .dashboard {
                 grid-template-columns: 1fr;
@@ -176,14 +191,15 @@
 <body>
     <button id="menu-toggle">☰</button>
     <div id="main-menu">
-        <h1>Welcome to Green Acres Farm Dashboard</h1>
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiM0Q0FGNTAiLz4KICA8cGF0aCBkPSJNMzAgNzBMNTAgMzBMNzAgNzBIMzBaIiBmaWxsPSIjRkZGRkZGIi8+CiAgPHBhdGggZD0iTTQwIDYwQzQwIDYwIDUwIDQwIDYwIDYwQzYwIDYwIDU1IDcwIDUwIDc1QzQ1IDcwIDQwIDYwIDQwIDYwWiIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4=" alt="Green Acres Logo" class="logo">
+        <h1 style="color: #FFFFFF;">Welcome to Green Acres Farm Dashboard</h1>
         <select id="farm-select">
             <option value="">Select a farm</option>
-            <option value="farm1">Farm 1</option>
-            <option value="farm2">Farm 2</option>
-            <option value="farm3">Farm 3</option>
+            <option value="farm1">مزرعة طريق اسكندرية الصحراوي</option>
+            <option value="farm2">مزرعة الاسماعيلية</option>
+            <option value="farm3">مزرعة المنصورة</option>
         </select>
-        <button class="button" onclick="enterDashboard()">Enter Dashboard</button>
+        <button class="button" onclick="enterDashboard()" style="background-color: #1B5E20;">Enter Dashboard</button>
     </div>
 
     <div class="dashboard" style="display: none;">
@@ -238,9 +254,7 @@
             <div id="details-view" style="display:none;">
                 <div class="card">
                     <h3>Farm Map</h3>
-                    <div id="map-placeholder" style="height: 400px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">
-                        Map placeholder - Implement your map here
-                    </div>
+                    <div id="map"></div>
                 </div>
                 <div class="card">
                     <h3>Recent Readings</h3>
@@ -269,6 +283,9 @@
             ph: [6.5, 6.4, 6.6, 6.5, 6.7, 6.6, 6.5, 6.4, 6.5, 6.6]
         };
         let warningHistory = [];
+        let map;
+        let roverMarker;
+        let readingsMarkers = [];
 
         function showNotification(message) {
             const notification = document.getElementById('notification');
@@ -310,23 +327,34 @@
             if (selectedFarm) {
                 document.getElementById('main-menu').style.display = 'none';
                 document.querySelector('.dashboard').style.display = 'grid';
-                // You can use the selectedFarm value to load specific farm data
                 console.log('Selected farm:', selectedFarm);
                 updateChart();
                 updateStats(averageData.temperature[9], averageData.moisture[9], averageData.ph[9], 85);
                 updateAmbientBlock();
                 showNotification(`Welcome to ${selectedFarm}`);
+                initMap();
+                // Show rover status on dashboard
+                const roverStatusElement = document.getElementById('rover-status');
+                roverStatusElement.textContent = `Rover Status: ${roverActive ? 'Active' : 'Inactive'}`;
+                roverStatusElement.style.display = 'block';
             } else {
                 alert('Please select a farm before entering the dashboard.');
             }
         }
-
         function showView(viewName) {
             document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
             document.getElementById(viewName + '-view').style.display = 'block';
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             event.target.classList.add('active');
             showNotification(`Switched to ${viewName} view`);
+            if (viewName === 'details' && !map) {
+                map = L.map('map').setView([30.51482280457499, 30.50026193732045], 13); // Alexandria Desert Road location
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 18,
+                }).addTo(map);
+                roverMarker = L.marker([30.51482280457499, 30.50026193732045]).addTo(map);
+            }
         }
 
         function toggleRover() {
@@ -361,6 +389,16 @@
             updateAmbientBlock();
             updateChart();
             addReading(temp, moisture, ph);
+
+            // Simulate rover motion and update map marker with a random direction and constant speed
+            const speed = 0.001; // Constant speed in degrees
+            const direction = Math.random() * 90 - 45; // Random direction between -90 and 90 degrees
+            const newLatitude = 30.51482280457499 + speed * Math.cos(direction * Math.PI / 180); // Adjust latitude based on direction and speed
+            const newLongitude = 30.50026193732045 + speed * Math.sin(direction * Math.PI / 180); // Adjust longitude based on direction and speed
+            if (map) {
+                roverMarker.setLatLng([newLatitude, newLongitude]);
+                roverMarker.bindPopup(`Temperature: ${temp}°C, Moisture: ${moisture}%, pH: ${ph}`).openPopup();
+            }
 
             // Check for warning conditions
             if (parseFloat(temp) > 30) {
