@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Acres Farm Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #45a049;
+            --background-color: #f0f7f0;
+            --card-color: #ffffff;
+            --text-color: #333333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            min-height: 100vh;
+        }
+        .sidebar {
+            background: var(--primary-color);
+            padding: 20px;
+            color: white;
+        }
+        .content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .menu-item {
+            display: block;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            text-decoration: none;
+            color: white;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.2);
+        }
+        .card {
+            background: var(--card-color);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .ambient-block {
+            font-size: 24px;
+            text-align: center;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: white;
+            transition: background-color 0.5s;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: var(--secondary-color);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .stat {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .label {
+            font-size: 14px;
+            color: #666;
+        }
+        #main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #farm-select {
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-menu">
+        <h1>Welcome to Green Acres Farm Dashboard</h1>
+        <select id="farm-select">
+            <option value="">Select a farm</option>
+            <option value="farm1">Farm 1</option>
+            <option value="farm2">Farm 2</option>
+            <option value="farm3">Farm 3</option>
+        </select>
+        <button class="button" onclick="enterDashboard()">Enter Dashboard</button>
+    </div>
+
+    <div class="dashboard" style="display: none;">
+        <div class="sidebar">
+            <h2>Green Acres</h2>
+            <nav>
+                <a href="#" class="menu-item active" onclick="showView('overview')">Overview</a>
+                <a href="#" class="menu-item" onclick="showView('details')">Details</a>
+                <a href="#" class="menu-item" onclick="showView('settings')">Settings</a>
+            </nav>
+        </div>
+        
+        <div class="content">
+            <div id="overview-view">
+                <div id="ambient-block" class="ambient-block">
+                    Farm is in good condition
+                </div>
+                <div class="grid">
+                    <div class="card">
+                        <div class="stat" id="temp-stat">22°C</div>
+                        <div class="label">Average Temperature</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat" id="moisture-stat">45%</div>
+                        <div class="label">Average Moisture</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat" id="ph-stat">6.5</div>
+                        <div class="label">Average pH</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat" id="battery-stat">85%</div>
+                        <div class="label">Rover Battery</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Average Readings</h3>
+                    <canvas id="averageChart"></canvas>
+                </div>
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <a href="#" class="button" onclick="toggleRover()">Start/Stop Rover</a>
+                    <a href="#" class="button" onclick="generateReport()">Generate Report</a>
+                </div>
+            </div>
+            
+            <div id="details-view" style="display:none;">
+                <div class="card">
+                    <h3>Farm Map</h3>
+                    <div id="map-placeholder" style="height: 400px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">
+                        Map placeholder - Implement your map here
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Recent Readings</h3>
+                    <div id="readings-list"></div>
+                </div>
+            </div>
+            
+            <div id="settings-view" style="display:none;">
+                <div class="card">
+                    <h3>Rover Settings</h3>
+                    <label>Sampling Interval: <input type="number" id="sampling-interval" value="30" min="5" max="120"> minutes</label><br><br>
+                    <label>Movement Speed: <input type="range" id="movement-speed" min="1" max="10" value="5"></label><br><br>
+                    <a href="#" class="button" onclick="saveSettings()">Save Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let roverActive = false;
+        let averageData = {
+            temperature: [22, 23, 21, 24, 22, 23, 25, 24, 23, 22],
+            moisture: [45, 47, 44, 46, 48, 45, 43, 46, 47, 45],
+            ph: [6.5, 6.4, 6.6, 6.5, 6.7, 6.6, 6.5, 6.4, 6.5, 6.6]
+        };
+
+        function enterDashboard() {
+            const selectedFarm = document.getElementById('farm-select').value;
+            if (selectedFarm) {
+                document.getElementById('main-menu').style.display = 'none';
+                document.querySelector('.dashboard').style.display = 'grid';
+                // You can use the selectedFarm value to load specific farm data
+                console.log('Selected farm:', selectedFarm);
+                updateChart();
+                updateStats(averageData.temperature[9], averageData.moisture[9], averageData.ph[9], 85);
+                updateAmbientBlock();
+            } else {
+                alert('Please select a farm before entering the dashboard.');
+            }
+        }
+
+        function showView(viewName) {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById(viewName + '-view').style.display = 'block';
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function toggleRover() {
+            roverActive = !roverActive;
+            if (roverActive) {
+                simulateRoverActivity();
+            }
+        }
+
+        function simulateRoverActivity() {
+            if (!roverActive) return;
+
+            const temp = (Math.random() * 5 + 20).toFixed(1);
+            const moisture = (Math.random() * 10 + 40).toFixed(0);
+            const ph = (Math.random() * 0.5 + 6.3).toFixed(1);
+            const battery = (Math.random() * 10 + 80).toFixed(0);
+
+            averageData.temperature.push(parseFloat(temp));
+            averageData.moisture.push(parseFloat(moisture));
+            averageData.ph.push(parseFloat(ph));
+
+            if (averageData.temperature.length > 10) {
+                averageData.temperature.shift();
+                averageData.moisture.shift();
+                averageData.ph.shift();
+            }
+
+            updateStats(temp, moisture, ph, battery);
+            updateAmbientBlock();
+            updateChart();
+            addReading(temp, moisture, ph);
+
+            setTimeout(simulateRoverActivity, 2000);
+        }
+
+        function updateStats(temp, moisture, ph, battery) {
+            document.getElementById('temp-stat').textContent = temp + '°C';
+            document.getElementById('moisture-stat').textContent = moisture + '%';
+            document.getElementById('ph-stat').textContent = ph;
+            document.getElementById('battery-stat').textContent = battery + '%';
+        }
+
+        function updateAmbientBlock() {
+            const avgTemp = averageData.temperature.reduce((a, b) => a + b) / averageData.temperature.length;
+            const block = document.getElementById('ambient-block');
+            
+            if (avgTemp < 10) {
+                block.style.backgroundColor = '#007bff';
+                block.textContent = 'Farm is cold';
+            } else if (avgTemp < 20) {
+                block.style.backgroundColor = '#28a745';
+                block.textContent = 'Farm is in good condition';
+            } else if (avgTemp < 30) {
+                block.style.backgroundColor = '#ffc107';
+                block.textContent = 'Farm is warm';
+            } else {
+                block.style.backgroundColor = '#dc3545';
+                block.textContent = 'Farm is hot';
+            }
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('averageChart').getContext('2d');
+            if (window.farmChart) {
+                window.farmChart.destroy();
+            }
+            window.farmChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: averageData.temperature,
+                        borderColor: 'red',
+                        fill: false
+                    }, {
+                        label: 'Moisture (%)',
+                        data: averageData.moisture,
+                        borderColor: 'blue',
+                        fill: false
+                    }, {
+                        label: 'pH',
+                        data: averageData.ph,
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function addReading(temp, moisture, ph) {
+            const readingsList = document.getElementById('readings-list');
+            const reading = document.createElement('p');
+            reading.textContent = `Temperature: ${temp}°C, Moisture: ${moisture}%, pH: ${ph}`;
+            readingsList.prepend(reading);
+            if (readingsList.children.length > 5) {
+                readingsList.removeChild(readingsList.lastChild);
+            }
+        }
+
+        function generateReport() {
+            alert('Generating comprehensive farm report...');
+        }
+
+        function saveSettings() {
+            const interval = document.getElementById('sampling-interval').value;
+            const speed = document.getElementById('movement-speed').value;
+            alert(`Settings saved! Sampling every ${interval} minutes, Movement speed: ${speed}/10`);
+        }
+    </script>
+</body>
+</html>
