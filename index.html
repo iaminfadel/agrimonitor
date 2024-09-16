@@ -237,7 +237,7 @@
                         <div class="label">Rover Battery</div>
                     </div>
                     <div class="card">
-                        <div class="stat" id="rover-status">Active</div>
+                        <div class="stat" id="rover-status">Inactive</div>
                         <div class="label">Rover Status</div>
                     </div>
                 </div>
@@ -382,9 +382,11 @@
         function toggleRover() {
             roverActive = !roverActive;
             if (roverActive) {
-                simulateRoverActivity();
+                document.getElementById('rover-status').textContent = 'Active';
                 showNotification('Rover activated');
+                simulateRoverActivity();
             } else {
+                document.getElementById('rover-status').textContent = 'Inactive';
                 showNotification('Rover deactivated');
             }
         }
