@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Acres Farm Dashboard</title>
+    <title>AgriMonitor Farm Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />ccd 
     <script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <style>
         :root {
@@ -100,6 +100,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            /* background-color: #FFFFFF; */
             background-color: #2E7D32;
             background-image: linear-gradient(to bottom right, #1B5E20, #43A047);
         }
@@ -192,8 +193,8 @@
 <body>
     <button id="menu-toggle">☰</button>
     <div id="main-menu">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiM0Q0FGNTAiLz4KICA8cGF0aCBkPSJNMzAgNzBMNTAgMzBMNzAgNzBIMzBaIiBmaWxsPSIjRkZGRkZGIi8+CiAgPHBhdGggZD0iTTQwIDYwQzQwIDYwIDUwIDQwIDYwIDYwQzYwIDYwIDU1IDcwIDUwIDc1QzQ1IDcwIDQwIDYwIDQwIDYwWiIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4=" alt="Green Acres Logo" class="logo">
-        <h1 style="color: #FFFFFF;">Welcome to Green Acres Farm Dashboard</h1>
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiM0Q0FGNTAiLz4KICA8cGF0aCBkPSJNMzAgNzBMNTAgMzBMNzAgNzBIMzBaIiBmaWxsPSIjRkZGRkZGIi8+CiAgPHBhdGggZD0iTTQwIDYwQzQwIDYwIDUwIDQwIDYwIDYwQzYwIDYwIDU1IDcwIDUwIDc1QzQ1IDcwIDQwIDYwIDQwIDYwWiIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4=" alt="AgriMonitor Logo" class="logo">
+        <h1 style="color: #FFFFFF;">Welcome to AgriMonitor Farm Dashboard</h1>
         <select id="farm-select">
             <option value="">Select a farm</option>
             <option value="farm1">مزرعة طريق اسكندرية الصحراوي</option>
@@ -205,7 +206,7 @@
 
     <div class="dashboard" style="display: none;">
         <div class="sidebar">
-            <h2>Green Acres</h2>
+            <h2>AgriMonitor</h2>
             <nav>
                 <a href="#" class="menu-item active" onclick="showView('overview')">Overview</a>
                 <a href="#" class="menu-item" onclick="showView('details')">Details</a>
