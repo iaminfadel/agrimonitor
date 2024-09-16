@@ -100,7 +100,6 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            /* background-color: #FFFFFF; */
             background-color: #2E7D32;
             background-image: linear-gradient(to bottom right, #1B5E20, #43A047);
         }
@@ -160,6 +159,13 @@
             margin-bottom: 5px;
             padding: 10px;
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .warning-history img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
         }
         #map {
             height: 400px;
@@ -253,7 +259,12 @@
                 <div id="warning-log" class="warning-log" style="display: none;"></div>
                 <div class="warning-history">
                     <h3>Warning History</h3>
-                    <ul id="warning-history-list"></ul>
+                    <ul id="warning-history-list">
+                        <li><img src="warning-icon.png" alt="Warning Icon"> Warning: High temperature detected (30°C) - 2022-01-01 12:00:00</li>
+                        <li><img src="warning-icon.png" alt="Warning Icon"> Warning: Low moisture detected (20%) - 2022-01-01 12:05:00</li>
+                        <li><img src="warning-icon.png" alt="Warning Icon"> Warning: pH level out of optimal range (5.5) - 2022-01-01 12:10:00</li>
+                        <li><img src="warning-icon.png" alt="Warning Icon"> Warning: Low rover battery (10%) - 2022-01-01 12:15:00</li>
+                    </ul>
                 </div>
             </div>
             
@@ -288,7 +299,12 @@
             moisture: [45, 47, 44, 46, 48, 45, 43, 46, 47, 45],
             ph: [6.5, 6.4, 6.6, 6.5, 6.7, 6.6, 6.5, 6.4, 6.5, 6.6]
         };
-        let warningHistory = [];
+        let warningHistory = [
+            { message: 'Warning: High temperature detected (30°C)', timestamp: '2022-01-01 12:00:00' },
+            { message: 'Warning: Low moisture detected (20%)', timestamp: '2022-01-01 12:05:00' },
+            { message: 'Warning: pH level out of optimal range (5.5)', timestamp: '2022-01-01 12:10:00' },
+            { message: 'Warning: Low rover battery (10%)', timestamp: '2022-01-01 12:15:00' }
+        ];
         let map;
         let heatLayer;
         let moistureLayer;
@@ -325,7 +341,7 @@
             warningHistoryList.innerHTML = '';
             warningHistory.forEach(warning => {
                 const li = document.createElement('li');
-                li.textContent = `${warning.timestamp}: ${warning.message}`;
+                li.innerHTML = `<img src="warning-icon.png" alt="Warning Icon"> ${warning.message} - ${warning.timestamp}`;
                 warningHistoryList.appendChild(li);
             });
         }
